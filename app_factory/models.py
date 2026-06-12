@@ -10,10 +10,12 @@ PRODUCT_GROUP_CZ_IDS = {
     'bio': 17,
 }
 
+
 class ProductGroupChoices(models.TextChoices):
-    null = 'null', 'Товарная группа не выбрана'
-    milk = 'milk', 'Молочная продукция'
-    bio = 'bio', 'Специализированная пищевая продукция и БАД к пище'
+    """Товарная группа"""
+    NOT_SELECTED = 'null', 'Товарная группа не выбрана'
+    MILK = 'milk', 'Молочная продукция'
+    BIO = 'bio', 'Специализированная пищевая продукция и БАД к пище'
 
     @property
     def ch_group_id(self):
@@ -28,26 +30,29 @@ class PackagingLevelChoices(models.IntegerChoices):
 
 
 class StateConditionChoices(models.TextChoices):
-    not_ready_order_km = 'not_ready_order_km', 'Не готов к заказу КМ'
-    ready_order_km = 'ready_order_km', 'Готов к заказу КМ'
-    ready_commercialization = 'ready_commercialization', 'Готов к вводу в оборот'
+    """Состояние товара"""
+    NOT_READY_ORDER_KM = 'not_ready_order_km', 'Не готов к заказу КМ'
+    READY_ORDER_KM = 'ready_order_km', 'Готов к заказу КМ'
+    READY_COMMERCIALIZATION = 'ready_commercialization', 'Готов к вводу в оборот'
 
 
 class CardStateChoices(models.TextChoices):
-    draft = 'draft', 'Черновик'
-    on_moderation = 'on_moderation', 'На модерации'
-    requires_moderation = 'requires_moderation', 'Требует модерацию'
-    awaiting_signature = 'awaiting_signature', 'Ожидает подписания'
-    published = 'published', 'Опубликована'
-    in_archive = 'in_archive', 'В архиве'
-    requires_processing = 'requires_processing', 'Требует обработки'
+    """Состояние карточки в ЧЗ"""
+    DRAFT = 'draft', 'Черновик'
+    ON_MODERATION = 'on_moderation', 'На модерации'
+    REQUIRES_MODERATION = 'requires_moderation', 'Требует модерацию'
+    AWAITING_SIGNATURE = 'awaiting_signature', 'Ожидает подписания'
+    PUBLISHED = 'published', 'Опубликована'
+    IN_ARCHIVE = 'in_archive', 'В архиве'
+    REQUIRES_PROCESSING = 'requires_processing', 'Требует обработки'
 
 
 class ProductionBatchChoices(models.TextChoices):
-    draft = 'draft', 'Черновик'
-    in_progress = 'in_progress', 'В производстве'
-    completed = 'completed', 'Завершен'
-    cancelled = 'cancelled', 'Отменен'
+    """Статусы производственной партии"""
+    DRAFT = 'draft', 'Черновик'
+    IN_PROGRESS = 'in_progress', 'В производстве'
+    COMPLETED = 'completed', 'Завершен'
+    CANCELLED = 'cancelled', 'Отменен'
 
 
 # ==========================================
@@ -125,7 +130,7 @@ class ProductPackaging(models.Model):
     product = models.ForeignKey(
         Product,
         on_delete=models.PROTECT,
-        related_name='packagings', # product.packagings.all() вернет все упаковки
+        related_name='packagings',
         verbose_name='Продукт'
     )
     level = models.IntegerField(
@@ -143,7 +148,6 @@ class ProductPackaging(models.Model):
         validators=[RegexValidator(regex=r'^\d{14}$', message='GTIN должен состоять ровно из 14 цифр')],
         verbose_name='GTIN упаковки',
     )
-    # Ключевое поле для агрегации: сколько единиц нижнего уровня помещается в эту упаковку
     quantity_inside = models.PositiveIntegerField(
         verbose_name='Количество в упаковке',
         help_text='Сколько штук (или коробок) помещается в эту упаковку. Для штуки = 1.'
@@ -155,7 +159,6 @@ class ProductPackaging(models.Model):
         verbose_name_plural = 'Упаковки продукта (GTIN)'
         ordering = ('product', 'level')
         constraints = [
-            # Запрещаем создавать две упаковки одного уровня для одного продукта
             models.UniqueConstraint(
                 fields=['product', 'level'],
                 name='unique_packaging_level_per_product'
@@ -223,7 +226,7 @@ class ProductionBatch(models.Model):
 
     status = models.CharField(
         max_length=50,
-        default='draft',
+        default=ProductionBatchChoices.DRAFT,
         choices=ProductionBatchChoices.choices,
         verbose_name='Статус'
     )
