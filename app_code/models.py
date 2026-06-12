@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils import timezone
 
+from app_factory.models import ProductionBatch
+
 
 # ==========================================
 # Справочники
@@ -49,7 +51,7 @@ class MarkingCode(models.Model):
         verbose_name='Статус'
     )
     batch = models.ForeignKey(
-        'app_factory.ProductionBatch',
+        ProductionBatch,
         on_delete=models.PROTECT,
         related_name='marking_codes',
         verbose_name='Производственная партия'
