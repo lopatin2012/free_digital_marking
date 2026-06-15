@@ -96,10 +96,12 @@ class Equipment(models.Model):
 
     def set_settings(self, key, value):
         """Установка настройки"""
-        if self.settings is None:
-            self.settings = {}
+        current_settings = self.settings or {}
 
-        self.settings[key] = value
+        new_settings = dict(current_settings)
+        new_settings[key] = value
+
+        self.settings = new_settings
         self.save(update_fields=['settings'])
 
 
