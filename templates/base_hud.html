@@ -1,0 +1,141 @@
+{% load static %}
+{% load custom_tags %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Пульт управления{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/hud.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- ================= ВЕРХНЯЯ ПАНЕЛЬ ================= -->
+    <header class="hud-header">
+
+        <!-- СЛЕВА: Переключатель модулей -->
+        <div class="dropdown">
+            <button class="btn btn-secondary" id="module-btn">
+                {% icon 'grid' %}
+                <span>{{ current_system|default:"Выбранная система" }}</span>
+                {% icon 'chevron-down' size='sm' %}
+            </button>
+
+            <!-- Меню навигации. Зависит от прав -->
+            <div class="dropdown-menu">
+                {% if perms.django_core.view_production %}
+                    <a href="#" class="dropdown-item">Производство</a>
+                {% endif %}
+                {% if perms.django_core.view_suz %}
+                    <a href="#" class="dropdown-item">ЧЗ (Честный Знак)</a>
+                {% endif %}
+                {% if perms.django_core.view_events %}
+                    <a href="#" class="dropdown-item">События и логи</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ЦЕНТР: Живая лента событий -->
+        <div class="event-feed" id="event-feed">
+            <div class="event-feed-label">
+                {% icon 'clock' size='sm' %}
+                <span>События</span>
+            </div>
+            <div class="event-feed-container" id="event-container">
+                <div class="event-item event-info">
+                    <span class="event-time">--:--:--</span>
+                    <span class="event-message">Ожидание событий...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- СПРАВА: KPI модуля -->
+        <div class="flex items-center gap-6 text-sm">
+            <div class="text-right">
+                <div class="badge badge-muted mb-1">Ошибки ЧЗ</div>
+                <div class="badge badge-danger">
+                    {% icon 'alert-circle' size='sm' %}
+                    2
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div class="text-right">
+                <div class="badge badge-muted mb-1">Статус ЧЗ</div>
+                <div class="badge badge-success">
+                    <span class="dot dot-success animate-pulse"></span> Онлайн
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= ОСНОВНОЙ КОНТЕНТ ================= -->
+    <main class="hud-main no-scrollbar">
+        {% block content %}
+        <!-- Контент модулей будет здесь -->
+        {% endblock %}
+    </main>
+
+    <!-- ================= НИЖНЯЯ ПАНЕЛЬ ================= -->
+    <footer class="hud-footer">
+
+        <!-- СЛЕВА: Пользователь -->
+        <div class="flex items-center gap-3">
+            <div class="avatar">
+                {{ request.user.username|make_list|first|upper|default:"U" }}
+            </div>
+            <div>
+                <div class="text-sm font-bold">{{ request.user.get_full_name|default:request.user.username }}</div>
+                <div class="text-xs text-muted">
+                    {% if user.is_authenticated %}
+                        {% if request.user.is_staff %}Администратор{% else %}Пользователь{% endif %}
+                    {% else %}
+                        Неизвестный
+                    {% endif %}
+                </div>
+            </div>
+            {% if user.is_authenticated %}
+                <form action="{% url 'logout' %}" method="post" class="flex">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-icon danger" title="Выйти из системы">
+                        {% icon 'log-out' %}
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+        <!-- ЦЕНТР: Производительность -->
+        <div class="kpi-center-panel">
+            <div class="text-center">
+                <div class="badge badge-muted mb-1">Выработка</div>
+                <div class="text-xl font-black text-main">
+                    {{ shift_production|default:"0" }} <span class="text-sm font-medium text-muted">шт.</span>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div class="text-center">
+                <div class="badge badge-muted mb-1">Эффективность</div>
+                <div class="text-xl font-black text-success">
+                    {{ efficiency_percent|default:"0" }} <span class="text-sm font-medium text-muted">%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- СПРАВА: Быстрые действия -->
+        <div class="flex items-center gap-2">
+            {% for action in quick_actions %}
+                <button onclick="{{ action.js_action }}" class="btn {{ action.style_class }}">
+                    {{ action.name }}
+                </button>
+            {% endfor %}
+
+            <button class="btn-icon" title="Настроить панель">
+                {% icon 'settings' %}
+            </button>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/hud.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
