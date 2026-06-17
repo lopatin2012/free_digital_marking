@@ -1,49 +1,56 @@
+// static/js/hud.js
+
 document.addEventListener('DOMContentLoaded', () => {
-    const eventContainer = document.getElementById('event-container');
+    const feed = document.getElementById('event-feed');
+    const container = document.getElementById('event-container');
 
-    // Подключаемся к SSE endpoint.
-    const eventSource = new EventSource('{% url "event_stream" %}');
+    const FEED_URL = feed ? feed.dataset.eventsUrl : null;
 
-    eventSource.onmessage = function(event) {
-        const events = JSON.parse(event.data);
+    if (!FEED_URL) {
+        console.warn('Event feed URL not found');
+        return;
+    }
 
-        if (events.length > 0) {
-            // Очищаем контейнер.
-            eventContainer.innerHTML = '';
+    let lastEventCount = 0;
 
-            // Добавляем последние 3 события (чтобы не загромождать).
-            events.slice(0, 3).forEach((evt, index) => {
-                const eventEl = document.createElement('div');
-                eventEl.className = `event-item event-${evt.level}`;
+    async function fetchEvents() {
+        try {
+            const response = await fetch(FEED_URL, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!response.ok) throw new Error('Network error');
 
-                // Анимация появления для первого (нового) события.
-                if (index === 0) {
-                    eventEl.classList.add('event-new');
-                }
+            const json = await response.json();
+            const events = json.events;
 
-                eventEl.innerHTML = `
-                    <span class="event-time">${evt.timestamp}</span>
+            if (events.length === lastEventCount) return;
+            lastEventCount = events.length;
+
+            container.innerHTML = '';
+            if (events.length === 0) {
+                container.innerHTML = `
+                    <div class="event-item event-info">
+                        <span class="event-time">--:--:--</span>
+                        <span class="event-message">Новых событий нет</span>
+                    </div>`;
+                return;
+            }
+
+            events.forEach(evt => {
+                const el = document.createElement('div');
+                el.className = `event-item event-${evt.level}`;
+                el.innerHTML = `
+                    <span class="event-time">${evt.time}</span>
                     <span class="event-message">${evt.message}</span>
                 `;
-
-                eventContainer.appendChild(eventEl);
+                container.appendChild(el);
             });
+
+        } catch (err) {
+            console.warn('Event feed error:', err);
         }
-    };
+    }
 
-    eventSource.onerror = function(err) {
-        console.error('EventSource failed:', err);
-        // Показываем ошибку
-        eventContainer.innerHTML = `
-            <div class="event-item event-error">
-                <span class="event-time">--:--:--</span>
-                <span class="event-message">Ошибка подключения к ленте событий</span>
-            </div>
-        `;
-    };
-
-    // Закрытие соединения при уходе со страницы.
-    window.addEventListener('beforeunload', () => {
-        eventSource.close();
-    });
+    fetchEvents();
+    setInterval(fetchEvents, 3000);
 });

@@ -42,7 +42,7 @@
                 {% icon 'clock' size='sm' %}
                 <span>События</span>
             </div>
-            <div class="event-feed-container" id="event-container">
+            <div class="event-feed-container" id="event-container" data-events-url="{% url 'api_events' %}">
                 <div class="event-item event-info">
                     <span class="event-time">--:--:--</span>
                     <span class="event-message">Ожидание событий...</span>
