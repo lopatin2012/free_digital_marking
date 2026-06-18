@@ -24,15 +24,10 @@
 
             <!-- Меню навигации. Зависит от прав -->
             <div class="dropdown-menu">
-                {% if perms.django_core.view_production %}
-                    <a href="#" class="dropdown-item">Производство</a>
-                {% endif %}
-                {% if perms.django_core.view_suz %}
-                    <a href="#" class="dropdown-item">ЧЗ (Честный Знак)</a>
-                {% endif %}
-                {% if perms.django_core.view_events %}
-                    <a href="#" class="dropdown-item">События и логи</a>
-                {% endif %}
+                <a href="#" class="dropdown-item">1С</a>
+                <a href="#" class="dropdown-item">Производство</a>
+                <a href="#" class="dropdown-item">Честный Знак</a>
+                <a href="#" class="dropdown-item">События и логи</a>
             </div>
         </div>
 
