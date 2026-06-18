@@ -101,6 +101,7 @@ class Product(models.Model):
         max_length=50, choices=ProductGroupChoices.choices, verbose_name='Товарная группа продукта'
     )
     name = models.CharField(max_length=255, verbose_name='Наименование')
+    shelf_life_in_days = models.IntegerField(verbose_name='Срок годности в днях')
     item_condition = models.CharField(
         max_length=50, choices=StateConditionChoices.choices, verbose_name='Состояние товара'
     )
@@ -152,6 +153,7 @@ class ProductPackaging(models.Model):
         verbose_name='Количество в упаковке',
         help_text='Сколько штук (или коробок) помещается в эту упаковку. Для штуки = 1.'
     )
+    code_storage_period_in_days = models.IntegerField(verbose_name='Срок хранения кодов в днях')
     is_active = models.BooleanField(default=True, verbose_name='Активна')
 
     class Meta:
