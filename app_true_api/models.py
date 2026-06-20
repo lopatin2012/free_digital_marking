@@ -1,15 +1,47 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.contrib.auth.models import User
 from django.utils import timezone
 
 
 class Organization(models.Model):
     """Оrganization"""
     name = models.CharField(max_length=200, verbose_name='Наименование')
+    inn = models.CharField(max_length=20, blank=True, verbose_name='ИНН')
+
+    class Meta:
+        verbose_name = 'Организация'
+        verbose_name_plural = 'Организации'
 
     def __str__(self):
         return self.name
+
+    def get_active_suz(self):
+        """Возвращаем активное устройство СУЗ организации"""
+        return self.suz_devices.filter(is_active=True).first()
+
+class UserProfile(models.Model):
+    """Привязка пользователя к организации"""
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='profile',
+        verbose_name='Пользователь'
+    )
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name='user_profiles',
+        verbose_name='Организация'
+    )
+
+    class Meta:
+        verbose_name = 'Профиль пользователя'
+        verbose_name_plural = 'Профили пользователя'
+
+    def __str__(self):
+        return f'{self.user.username} ({self.organization.name})'
 
 
 class ElectronicDigitalSignature(models.Model):
@@ -98,15 +130,15 @@ class DeviceSUZ(models.Model):
         Organization,
         on_delete=models.CASCADE,
         verbose_name='Организация',
-        related_name='suz_devices'
+        related_name='suz_device'
     )
-    name = models.CharField(max_length=100, verbose_name='Наименование')  # Увеличил до 100 для надежности
+    name = models.CharField(max_length=100, verbose_name='Наименование')
     is_active = models.BooleanField(default=False, verbose_name='Активно')
     oms_id = models.CharField(max_length=100, verbose_name='OMS ID')
     connection_id = models.CharField(max_length=100, verbose_name='Идентификатор соединения')
 
-    current_dynamic_token = models.CharField(max_length=255, verbose_name='Текущий динамический токен')
-    token_is_valid_until = models.DateTimeField(verbose_name='Токен действителен до')
+    current_dynamic_token = models.CharField(blank=True, null=True, max_length=255, verbose_name='Текущий динамический токен')
+    token_is_valid_until = models.DateTimeField(blank=True, null=True, verbose_name='Токен действителен до')
 
     objects = DeviceSUZManager()
 
@@ -135,7 +167,10 @@ class DeviceSUZ(models.Model):
     @property
     def is_token_valid(self):
         """Проверяет валидность токена"""
-        return timezone.now() < self.token_is_valid_until
+        if self.token_is_valid_until:
+            return timezone.now() < self.token_is_valid_until
+
+        return False
 
     def __str__(self):
         active_status = 'Да' if self.is_active else 'Нет'
