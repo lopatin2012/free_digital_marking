@@ -68,7 +68,7 @@ class TrueAPIClient:
             logger.error(f'Ошибка запроса к True API: {url}, {e}')
             raise
 
-    def _get_auth_key(self) -> Dict[str, str]:
+    def get_auth_key(self) -> Dict[str, str]:
         """Получаем uuid и data для подписи"""
         logger.info('Запрос auth/key')
         return self._make_request('GET', '/auth/key')
@@ -108,12 +108,12 @@ class TrueAPIClient:
             }
 
 
-    def _refresh_token(self) -> str:
+    def refresh_token(self) -> str:
         """Обновляем токен через API и сохраняем в DeviceSUZ"""
         logger.info(f'Обновление токена для организации: {self.organization.name}')
 
         # Получаем данные для подписи
-        auth_data = self._get_auth_key()
+        auth_data = self.get_auth_key()
         uuid = auth_data['uuid']
         data = auth_data['data']
 
@@ -139,7 +139,7 @@ class TrueAPIClient:
             return self.suz_device.current_dynamic_token
 
         # Токен невалиден или отсутствует -> обновляем
-        return self._refresh_token()
+        return self.refresh_token()
 
     def invalidate_token(self):
         """Сбрасывает токен в БД"""
