@@ -114,15 +114,26 @@
             Быстрые действия
         </div>
         <div class="flex flex-wrap gap-3">
-            <button onclick="refreshToken()" class="btn btn-primary" id="btn-refresh">
+            <button onclick="refreshToken()"
+                    class="btn btn-primary"
+                    id="btn-refresh"
+                    data-default-content='{% icon "refresh-cw" %} Обновить токен'
+                    data-loading-content='{% icon "loader" %} Обновление...'>
                 {% icon 'refresh-cw' %}
                 Обновить токен
             </button>
-            <button onclick="testConnection()" class="btn btn-secondary" id="btn-test">
+            <button onclick="testConnection()"
+                    class="btn btn-secondary"
+                    id="btn-test"
+                    data-default-content='{% icon "wifi" %} Проверить подключение'
+                    data-loading-content='{% icon "loader" %} Проверка...'>
                 {% icon 'wifi' %}
                 Проверить подключение
             </button>
-            <button onclick="invalidateToken()" class="btn btn-danger" id="btn-invalidate">
+            <button onclick="invalidateToken()"
+                    class="btn btn-danger"
+                    id="btn-invalidate"
+                    data-default-content='{% icon "x-circle" %} Сбросить токен'>
                 {% icon 'x-circle' %}
                 Сбросить токен
             </button>
@@ -269,8 +280,11 @@ function getCookie(name) {
 // ============================================
 async function refreshToken() {
     const btn = document.getElementById('btn-refresh');
+    const defaultContent = btn.dataset.defaultContent;
+    const loadingContent = btn.dataset.loadingContent;
+
     btn.disabled = true;
-    btn.innerHTML = '{% icon "loader" %} Обновление...';
+    btn.innerHTML = loadingContent;
 
     addLog('Запрос обновления токена...', 'info');
 
@@ -287,14 +301,17 @@ async function refreshToken() {
         addLog(`✗ Ошибка сети: ${e.message}`, 'error');
     } finally {
         btn.disabled = false;
-        btn.innerHTML = '{% icon "refresh-cw" %} Обновить токен';
+        btn.innerHTML = defaultContent;
     }
 }
 
 async function testConnection() {
     const btn = document.getElementById('btn-test');
+    const defaultContent = btn.dataset.defaultContent;
+    const loadingContent = btn.dataset.loadingContent;
+
     btn.disabled = true;
-    btn.innerHTML = '{% icon "loader" %} Проверка...';
+    btn.innerHTML = loadingContent;
 
     addLog('Проверка подключения к True API...', 'info');
 
@@ -310,7 +327,7 @@ async function testConnection() {
         addLog(`✗ Ошибка сети: ${e.message}`, 'error');
     } finally {
         btn.disabled = false;
-        btn.innerHTML = '{% icon "wifi" %} Проверить подключение';
+        btn.innerHTML = defaultContent;
     }
 }
 
@@ -318,6 +335,8 @@ async function invalidateToken() {
     if (!confirm('Вы уверены, что хотите сбросить токен?')) return;
 
     const btn = document.getElementById('btn-invalidate');
+    const defaultContent = btn.dataset.defaultContent;
+
     btn.disabled = true;
 
     addLog('Сброс токена...', 'info');
@@ -335,6 +354,7 @@ async function invalidateToken() {
         addLog(`✗ Ошибка сети: ${e.message}`, 'error');
     } finally {
         btn.disabled = false;
+        btn.innerHTML = defaultContent;
     }
 }
 

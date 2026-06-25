@@ -1,8 +1,8 @@
 # app_page/views.py
 
 import logging
-from datetime import timezone
 
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
