@@ -19,7 +19,7 @@ class Organization(models.Model):
 
     def get_active_suz(self):
         """Возвращаем активное устройство СУЗ организации"""
-        return self.suz_devices.filter(is_active=True).first()
+        return self.suz_device.filter(is_active=True).first()
 
 class UserProfile(models.Model):
     """Привязка пользователя к организации"""

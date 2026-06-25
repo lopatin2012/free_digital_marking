@@ -35,7 +35,7 @@ def api_suz_refresh_token(request):
             'success': True,
             'message': 'Токен успешно обновлён',
             'token': token,
-            'valid_until': client.suz_device.token_valid_until.isoformat(),
+            'valid_until': client.suz_device.token_is_valid_until.isoformat(),
         })
 
     except ValueError as e:
@@ -53,7 +53,7 @@ def api_suz_invalidate_token(request):
         _check_profile(request)
 
         organization = request.user.profile.organization
-        device = organization.suz_devices.filter(is_active=True).first()
+        device = organization.suz_device.filter(is_active=True).first()
 
         if not device:
             return JsonResponse({'success': False, 'message': 'Нет активного устройства'}, status=400)
@@ -82,7 +82,7 @@ def api_suz_activate_device(request):
             return JsonResponse({'success': False, 'message': 'Отсутствует ID устройства'}, status=400)
 
         organization = request.user.profile.organization
-        device = organization.suz_devices.filter(id=device_id).first()
+        device = organization.suz_device.filter(id=device_id).first()
 
         device.is_active = True
         device.save(update_fields=['is_active'])

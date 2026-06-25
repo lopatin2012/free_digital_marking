@@ -77,7 +77,7 @@ class OrganizationAdmin(admin.ModelAdmin):
 
     def active_suz_count(self, obj):
         """Количество активных СУЗ"""
-        count = obj.suz_devices.filter(is_active=True).count()
+        count = obj.suz_device.filter(is_active=True).count()
         color = 'green' if count == 1 else 'red'
         return mark_safe(
             str.format(
