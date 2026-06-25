@@ -62,7 +62,7 @@
             </div>
 
             {% if active_device %}
-                {% if token_status == 'valid' %}
+                {% if token_status == 'Активный' %}
                     <div class="badge badge-success mb-3">
                         <span class="dot dot-success animate-pulse"></span>
                         Действителен
@@ -80,7 +80,7 @@
                         Осталось: <span id="token-time-left">{{ token_remaining_seconds }}</span> сек.
                     </div>
 
-                {% elif token_status == 'expired' %}
+                {% elif token_status == 'Истёк' %}
                     <div class="badge badge-danger mb-3">
                         {% icon 'alert-circle' size='sm' %}
                         Истёк
