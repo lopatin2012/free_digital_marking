@@ -54,11 +54,11 @@
             {% endif %}
         </div>
 
-        <!-- Карточка статуса токена -->
+        <!-- Карточка статуса динамического токена -->
         <div class="device-card">
             <div class="section-title">
                 {% icon 'key' %}
-                Статус токена
+                Статус динамического токена
             </div>
 
             {% if active_device %}
@@ -247,6 +247,25 @@ function addLog(message, type = 'info') {
 }
 
 // ============================================
+// Форматирование времени
+// ============================================
+function formatTime(seconds) {
+    if (seconds < 0) seconds = 0;
+
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if (hours > 0) {
+        return `${hours}ч ${minutes}м ${secs}с`;
+    } else if (minutes > 0) {
+        return `${minutes}м ${secs}с`;
+    } else {
+        return `${secs}с`;
+    }
+}
+
+// ============================================
 // API запросы
 // ============================================
 async function apiRequest(url, method = 'POST') {
@@ -389,19 +408,22 @@ async function activateDevice(deviceId) {
 // ============================================
 // Таймер обратного отсчёта токена
 // ============================================
-{% if token_status == 'valid' and token_remaining_seconds %}
+{% if token_status == 'Активный' and token_remaining_seconds > 0 %}
 let tokenTimeLeft = {{ token_remaining_seconds }};
-const totalTime = 8 * 60 * 60; // 8 часов в секундах
+const totalTime = 8 * 60 * 60; // 8 часов в секундах (28800)
 
 function updateTokenTimer() {
     if (tokenTimeLeft <= 0) {
         document.getElementById('token-time-left').textContent = 'Истёк';
         document.getElementById('token-progress-bar').className = 'token-progress-bar expired';
+        addLog('⚠ Токен истёк', 'error');
         return;
     }
 
     tokenTimeLeft--;
-    document.getElementById('token-time-left').textContent = tokenTimeLeft;
+
+    // Форматируем время в читаемый вид
+    document.getElementById('token-time-left').textContent = formatTime(tokenTimeLeft);
 
     // Обновляем прогресс-бар
     const percent = (tokenTimeLeft / totalTime) * 100;
@@ -418,6 +440,7 @@ function updateTokenTimer() {
     setTimeout(updateTokenTimer, 1000);
 }
 
+// Запускаем таймер
 updateTokenTimer();
 {% endif %}
 

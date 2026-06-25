@@ -94,12 +94,17 @@ def suz_dash(request):
     if active_device:
         token_status = 'Неизвестно'
         token_remaining_seconds = 0
+        token_remaining_percent = 0
 
         if active_device.current_dynamic_token:
             if active_device.is_token_valid:
                 token_status = 'Активный'
                 remaining = active_device.token_is_valid_until - timezone.now()
                 token_remaining_seconds = int(remaining.total_seconds())
+
+                # Расчёт.
+                total_token_lifetime = 8 * 60 * 60  # 28800 секунд
+                token_remaining_percent = int((token_remaining_seconds / total_token_lifetime) * 100)
             else:
                 token_status = 'Истёк'
         else:
@@ -108,6 +113,7 @@ def suz_dash(request):
         context.update({
             'token_status': token_status,
             'token_remaining_seconds': token_remaining_seconds,
+            'token_remaining_percent': token_remaining_percent,
             'token_is_valid_until': active_device.token_is_valid_until,
         })
     return render(request, 'modules/true_api/suz_dashboard.html', context)
