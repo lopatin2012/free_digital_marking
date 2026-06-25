@@ -1,0 +1,117 @@
+/* Карточка устройства */
+.device-card {
+    background: rgba(20, 25, 35, 0.6);
+    border: 1px solid rgba(100, 150, 255, 0.15);
+    border-radius: 12px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.device-card.active {
+    border-color: rgba(40, 167, 69, 0.4);
+    box-shadow: 0 0 20px rgba(40, 167, 69, 0.1);
+}
+
+/* Прогресс-бар токена */
+.token-progress {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+
+.token-progress-bar {
+    height: 100%;
+    transition: width 1s linear;
+    border-radius: 4px;
+}
+
+.token-progress-bar.valid {
+    background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+.token-progress-bar.expiring {
+    background: linear-gradient(90deg, #ffc107, #fd7e14);
+}
+
+.token-progress-bar.expired {
+    background: linear-gradient(90deg, #dc3545, #c82333);
+}
+
+/* Таблица устройств */
+.devices-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 0.5rem;
+}
+
+.devices-table th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.devices-table td {
+    padding: 1rem;
+    background: rgba(20, 25, 35, 0.4);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.devices-table tr td:first-child {
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px 0 0 8px;
+}
+
+.devices-table tr td:last-child {
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 0 8px 8px 0;
+}
+
+.devices-table tr.active-device td {
+    background: rgba(40, 167, 69, 0.1);
+    border-color: rgba(40, 167, 69, 0.2);
+}
+
+/* Секция */
+.section-title {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Лог операций */
+.operations-log {
+    max-height: 300px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+}
+
+.log-entry {
+    padding: 0.25rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-time {
+    color: rgba(255, 255, 255, 0.4);
+    margin-right: 0.5rem;
+}

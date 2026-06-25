@@ -1,0 +1,407 @@
+<!-- templates/module/true_api/suz_dashboard.html -->
+
+{% extends 'base_hud.html' %}
+{% load custom_tags %}
+{% load static %}
+
+{% block title %}СУЗ — Панель управления{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/suz_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="p-6 space-y-6">
+
+    <!-- ================= СТАТУС АКТИВНОГО УСТРОЙСТВА ================= -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Основная карточка устройства -->
+        <div class="lg:col-span-2 device-card {% if active_device %}active{% endif %}">
+            <div class="flex items-start justify-between mb-4">
+                <div>
+                    <div class="section-title">
+                        {% icon 'cpu' %}
+                        Активное устройство СУЗ
+                    </div>
+                    {% if active_device %}
+                        <h2 class="text-2xl font-bold text-main">{{ active_device.name }}</h2>
+                        <p class="text-sm text-muted mt-1">Организация: {{ organization.name }}</p>
+                    {% else %}
+                        <h2 class="text-2xl font-bold text-danger">Нет активного устройства</h2>
+                        <p class="text-sm text-muted mt-1">Активируйте устройство из списка ниже</p>
+                    {% endif %}
+                </div>
+                {% if active_device %}
+                    <div class="badge badge-success">
+                        <span class="dot dot-success animate-pulse"></span>
+                        Активно
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if active_device %}
+                <div class="grid grid-cols-2 gap-4 mt-6">
+                    <div>
+                        <div class="text-xs text-muted mb-1">OMS ID</div>
+                        <div class="font-mono text-sm">{{ active_device.oms_id }}</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-muted mb-1">Connection ID</div>
+                        <div class="font-mono text-sm">{{ active_device.connection_id }}</div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Карточка статуса токена -->
+        <div class="device-card">
+            <div class="section-title">
+                {% icon 'key' %}
+                Статус токена
+            </div>
+
+            {% if active_device %}
+                {% if token_status == 'valid' %}
+                    <div class="badge badge-success mb-3">
+                        <span class="dot dot-success animate-pulse"></span>
+                        Действителен
+                    </div>
+                    <div class="text-sm text-muted mb-2">
+                        Истекает: {{ token_valid_until|date:"d.m.Y H:i" }}
+                    </div>
+                    <div class="token-progress">
+                        <div class="token-progress-bar valid"
+                             id="token-progress-bar"
+                             style="width: {{ token_remaining_percent|default:100 }}%">
+                        </div>
+                    </div>
+                    <div class="text-xs text-muted mt-2" id="token-remaining">
+                        Осталось: <span id="token-time-left">{{ token_remaining_seconds }}</span> сек.
+                    </div>
+
+                {% elif token_status == 'expired' %}
+                    <div class="badge badge-danger mb-3">
+                        {% icon 'alert-circle' size='sm' %}
+                        Истёк
+                    </div>
+                    <div class="text-sm text-muted">
+                        Требуется обновление
+                    </div>
+
+                {% else %}
+                    <div class="badge badge-warning mb-3">
+                        {% icon 'alert-triangle' size='sm' %}
+                        Отсутствует
+                    </div>
+                    <div class="text-sm text-muted">
+                        Токен не получен
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="badge badge-muted">
+                    Нет данных
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ================= КНОПКИ УПРАВЛЕНИЯ ================= -->
+    {% if active_device %}
+    <div class="device-card">
+        <div class="section-title">
+            {% icon 'zap' %}
+            Быстрые действия
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <button onclick="refreshToken()" class="btn btn-primary" id="btn-refresh">
+                {% icon 'refresh-cw' %}
+                Обновить токен
+            </button>
+            <button onclick="testConnection()" class="btn btn-secondary" id="btn-test">
+                {% icon 'wifi' %}
+                Проверить подключение
+            </button>
+            <button onclick="invalidateToken()" class="btn btn-danger" id="btn-invalidate">
+                {% icon 'x-circle' %}
+                Сбросить токен
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ================= СПИСОК УСТРОЙСТВ ================= -->
+    <div class="device-card">
+        <div class="section-title">
+            {% icon 'list' %}
+            Все устройства СУЗ ({{ devices_count }})
+        </div>
+
+        <table class="devices-table">
+            <thead>
+                <tr>
+                    <th>Наименование</th>
+                    <th>OMS ID</th>
+                    <th>Connection ID</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for device in all_devices %}
+                <tr class="{% if device.is_active %}active-device{% endif %}">
+                    <td>
+                        <div class="font-bold">{{ device.name }}</div>
+                        {% if device.is_active %}
+                            <span class="badge badge-success badge-sm">Активно</span>
+                        {% endif %}
+                    </td>
+                    <td class="font-mono text-sm">{{ device.oms_id }}</td>
+                    <td class="font-mono text-sm">{{ device.connection_id }}</td>
+                    <td>
+                        {% if device.is_active %}
+                            <span class="badge badge-success">
+                                <span class="dot dot-success"></span> Активно
+                            </span>
+                        {% else %}
+                            <span class="badge badge-muted">Неактивно</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not device.is_active %}
+                            <button onclick="activateDevice({{ device.id }})"
+                                    class="btn btn-sm btn-secondary">
+                                {% icon 'check' size='sm' %}
+                                Активировать
+                            </button>
+                        {% else %}
+                            <span class="text-muted text-sm">Текущее</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-8">
+                        Устройства не найдены. Добавьте их в админке.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ================= ЛОГ ОПЕРАЦИЙ ================= -->
+    <div class="device-card">
+        <div class="section-title">
+            {% icon 'file-text' %}
+            Лог операций
+        </div>
+        <div class="operations-log" id="operations-log">
+            <div class="log-entry log-info">
+                <span class="log-time">[--:--:--]</span>
+                Ожидание операций...
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ============================================
+// Логирование операций
+// ============================================
+function addLog(message, type = 'info') {
+    const log = document.getElementById('operations-log');
+    const now = new Date();
+    const time = now.toLocaleTimeString('ru-RU');
+
+    const entry = document.createElement('div');
+    entry.className = `log-entry log-${type}`;
+    entry.innerHTML = `<span class="log-time">[${time}]</span> ${message}`;
+
+    // Удаляем "Ожидание операций..."
+    const placeholder = log.querySelector('.log-info');
+    if (placeholder && placeholder.textContent.includes('Ожидание')) {
+        placeholder.remove();
+    }
+
+    log.insertBefore(entry, log.firstChild);
+
+    // Ограничиваем количество записей
+    while (log.children.length > 50) {
+        log.removeChild(log.lastChild);
+    }
+}
+
+// ============================================
+// API запросы
+// ============================================
+async function apiRequest(url, method = 'POST') {
+    const response = await fetch(url, {
+        method: method,
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+    });
+    return await response.json();
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// ============================================
+// Действия
+// ============================================
+async function refreshToken() {
+    const btn = document.getElementById('btn-refresh');
+    btn.disabled = true;
+    btn.innerHTML = '{% icon "loader" %} Обновление...';
+
+    addLog('Запрос обновления токена...', 'info');
+
+    try {
+        const result = await apiRequest('{% url "api_suz_refresh_token" %}');
+
+        if (result.success) {
+            addLog(`✓ Токен обновлён. Действителен до: ${new Date(result.valid_until).toLocaleString('ru-RU')}`, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            addLog(`✗ Ошибка: ${result.error}`, 'error');
+        }
+    } catch (e) {
+        addLog(`✗ Ошибка сети: ${e.message}`, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '{% icon "refresh-cw" %} Обновить токен';
+    }
+}
+
+async function testConnection() {
+    const btn = document.getElementById('btn-test');
+    btn.disabled = true;
+    btn.innerHTML = '{% icon "loader" %} Проверка...';
+
+    addLog('Проверка подключения к True API...', 'info');
+
+    try {
+        const result = await apiRequest('{% url "api_suz_test_connection" %}');
+
+        if (result.success) {
+            addLog(`✓ Подключение успешно. UUID: ${result.uuid}`, 'success');
+        } else {
+            addLog(`✗ Ошибка: ${result.error}`, 'error');
+        }
+    } catch (e) {
+        addLog(`✗ Ошибка сети: ${e.message}`, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '{% icon "wifi" %} Проверить подключение';
+    }
+}
+
+async function invalidateToken() {
+    if (!confirm('Вы уверены, что хотите сбросить токен?')) return;
+
+    const btn = document.getElementById('btn-invalidate');
+    btn.disabled = true;
+
+    addLog('Сброс токена...', 'info');
+
+    try {
+        const result = await apiRequest('{% url "api_suz_invalidate_token" %}');
+
+        if (result.success) {
+            addLog('✓ Токен сброшен', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            addLog(`✗ Ошибка: ${result.error}`, 'error');
+        }
+    } catch (e) {
+        addLog(`✗ Ошибка сети: ${e.message}`, 'error');
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function activateDevice(deviceId) {
+    addLog(`Активация устройства #${deviceId}...`, 'info');
+
+    try {
+        const formData = new FormData();
+        formData.append('device_id', deviceId);
+
+        const response = await fetch('{% url "api_suz_activate_device" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: formData,
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            addLog(`✓ ${result.message}`, 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            addLog(`✗ Ошибка: ${result.error}`, 'error');
+        }
+    } catch (e) {
+        addLog(`✗ Ошибка сети: ${e.message}`, 'error');
+    }
+}
+
+// ============================================
+// Таймер обратного отсчёта токена
+// ============================================
+{% if token_status == 'valid' and token_remaining_seconds %}
+let tokenTimeLeft = {{ token_remaining_seconds }};
+const totalTime = 8 * 60 * 60; // 8 часов в секундах
+
+function updateTokenTimer() {
+    if (tokenTimeLeft <= 0) {
+        document.getElementById('token-time-left').textContent = 'Истёк';
+        document.getElementById('token-progress-bar').className = 'token-progress-bar expired';
+        return;
+    }
+
+    tokenTimeLeft--;
+    document.getElementById('token-time-left').textContent = tokenTimeLeft;
+
+    // Обновляем прогресс-бар
+    const percent = (tokenTimeLeft / totalTime) * 100;
+    const bar = document.getElementById('token-progress-bar');
+    bar.style.width = percent + '%';
+
+    // Меняем цвет при приближении к концу
+    if (percent < 20) {
+        bar.className = 'token-progress-bar expired';
+    } else if (percent < 50) {
+        bar.className = 'token-progress-bar expiring';
+    }
+
+    setTimeout(updateTokenTimer, 1000);
+}
+
+updateTokenTimer();
+{% endif %}
+
+// Начальное сообщение в лог
+addLog('Страница СУЗ загружена', 'info');
+</script>
+{% endblock %}

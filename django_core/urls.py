@@ -11,6 +11,7 @@ urlpatterns = [
     path('', include('app_page.urls')), # Страницы.
     path('auth/', include('django.contrib.auth.urls')), # Стандартная аутентификация.
     path('events/', include('app_event.urls')), # События.
+    path('true_api/', include('app_true_api.urls')), # Взаимодействие с TrueAPI и SUZ.
 ]
 
 if DEBUG:

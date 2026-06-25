@@ -24,9 +24,10 @@
 
             <!-- Меню навигации. Зависит от прав -->
             <div class="dropdown-menu">
+                <a href="{% url 'home' %}" class="dropdown-item">Главная</a>
                 <a href="#" class="dropdown-item">1С</a>
                 <a href="#" class="dropdown-item">Производство</a>
-                <a href="#" class="dropdown-item">Честный Знак</a>
+                <a href="{% url 'suz' %}" class="dropdown-item">Честный Знак</a>
                 <a href="#" class="dropdown-item">События и логи</a>
             </div>
         </div>

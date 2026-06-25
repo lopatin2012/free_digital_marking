@@ -341,3 +341,22 @@ body {
     0%, 100% { background-color: transparent; }
     10% { background-color: rgba(59, 130, 246, 0.1); }
 }
+
+.log-success { color: #28a745; }
+.log-error { color: #dc3545; }
+.log-info { color: #17a2b8; }
+
+
+/* Анимация для loader */
+.icon-loader {
+    animation: icon-spin 1s linear infinite;
+}
+
+@keyframes icon-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
